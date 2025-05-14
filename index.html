@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>내가 만약 기후난민이 된다면</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            color: white;
+            line-height: 1.6;
+            font-family: sans-serif;
+        }
+
+        .main-background {
+            display: none;
+            height: 1100px;
+            background-image: url('intro.jpg');
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .first-section {
+            background-color: black;
+            padding: 0;
+            min-height: 700px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 64px;
+            margin-top:0px;
+            margin-bottom: 0px;
+        }
+
+        p {
+            text-align: center;
+            font-size: 20px;
+            margin-top: 0;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 24px;
+            margin-top: 100px;
+            margin-bottom: 80px;
+            font-weight: 300;
+        }
+
+        .first-img {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+        }
+
+        .disaster-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .disaster-item img {
+            width: 250px;
+            height: auto;
+        }
+
+        .disaster-label {
+            margin-top: 8px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* 시뮬레이션 효과용 */
+        .simulation-section {
+            display: none;
+            min-height: 100vh;
+            width: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: #000000;
+            color: #fff;
+            padding: 40px 0;
+        }
+        .simulation-section.active {
+            display: flex;
+        }
+        .simulation-disaster-row {
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+        .simulation-disaster-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        .simulation-disaster-item img {
+            width: 200px;
+            transition: transform 0.3s;
+        }
+        .simulation-disaster-item img:hover {
+            transform: scale(1.05);
+        }
+        .simulation-disaster-label {
+            margin-top: 8px;
+            font-size: 20px;
+        }
+        .simulation-text {
+            max-width: 800px;
+            font-size: 1.6rem;
+            text-align: center;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            opacity: 0;
+            color: #fff;
+            transition: opacity 0.6s;
+        }
+        .simulation-text.active {
+            opacity: 1;
+        }
+        .simulation-text.highlight {
+            color: #00ffff;
+        }
+        .simulation-text.red {
+            color: #ff5555;
+        }
+        /* 애니메이션 */
+        .simulation-section.flood .simulation-text.visible {
+            animation: floatUp 1.5s ease-out forwards;
+        }
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(-10px); }
+        }
+        .simulation-section.typhoon .simulation-text.visible {
+            animation: showAndBlowAway 2s forwards;
+        }
+        @keyframes showAndBlowAway {
+            0% { opacity: 0; transform: translateX(0); }
+            10% { opacity: 1; transform: translateX(0); }
+            60% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0; transform: translateX(300px); }
+        }
+        .simulation-section.earthquake .simulation-text.visible {
+            animation: shakeTextStrong 0.7s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shakeTextStrong {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-18px); }
+            20%, 40%, 60%, 80% { transform: translateX(18px); }
+        }
+        .simulation-back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 14px;
+            cursor: pointer;
+            border: 1px solid white;
+            font-size: 14px;
+            color: #fff;
+        }
+        .bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 1100px;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .bg-video__content {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .simulation-section.flood {
+            position: relative;
+            padding-top: 400px;
+        }
+        .simulation-content {
+            position: relative;
+            z-index: 1;
+        }
+    
+        @keyframes collapseChar {
+            0% { transform: translateY(0) rotate(0); opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(80px) rotate(30deg); opacity: 0; }
+        }
+        .collapse .char {
+            display: inline-block;
+            animation: collapseChar 1s forwards;
+            animation-delay: calc(var(--char-index) * 0.05s);
+        }
+        @keyframes collapseCharStrong {
+            0% { transform: translateY(0); opacity: 1; }
+            60% { opacity: 1; }
+            100% { transform: translateY(120px); opacity: 0; }
+        }
+        .collapse .char {
+            display: inline-block;
+            animation: collapseCharStrong 1.2s forwards;
+            animation-delay: calc(0.7s + var(--char-index) * 0.06s);
+        }
+        .bg-video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1;
+            pointer-events: none;
+        }
+        .page-section {
+            display: none;
+            min-height: 100vh;
+            background: #111;
+            color: #fff;
+            position: relative;
+            z-index: 10;
+            padding: 80px 0 80px 0;
+        }
+        .page-section.active {
+            display: block;
+        }
+        .scroll-guide {
+            position: fixed;
+            left: 50%;
+            bottom: 40px;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 12px 28px;
+            border-radius: 24px;
+            font-size: 1.15rem;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: scrollGuideFade 1.5s infinite alternate;
+            pointer-events: none;
+        }
+        @keyframes scrollGuideFade {
+            0% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        .scroll-arrow {
+            font-size: 1.7em;
+            animation: scrollArrowMove 1s infinite alternate;
+        }
+        @keyframes scrollArrowMove {
+            0% { transform: translateY(0);}
+            100% { transform: translateY(10px);}
+        }
+    </style>
+</head>
+<body>
+    <div class="main-background"> 
+        <h1>If I Am a Climate Refugee</h1>
+        <p>내가 만약 기후난민이 된다면?</p>
+    </div>
+    
+
+    <section class="simulation-section" id="simulationIntro">
+        <h2 class="text-center" style="color:#fff; font-size:2.2rem; margin-bottom:32px;">재난을 선택해 시뮬레이션을 시작하세요</h2>
+        <div class="simulation-disaster-row">
+            <div class="simulation-disaster-item" onclick="startSimulation('flood')">
+                <img src="but1.png" alt="홍수">
+                <div class="simulation-disaster-label">홍수</div>
+            </div>
+            <div class="simulation-disaster-item" onclick="startSimulation('typhoon')">
+                <img src="but2.png" alt="태풍">
+                <div class="simulation-disaster-label">태풍</div>
+            </div>
+            <div class="simulation-disaster-item" onclick="startSimulation('earthquake')">
+                <img src="but3.png" alt="지진">
+                <div class="simulation-disaster-label">지진</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="simulation-section flood" id="simulationFlood">
+        <div class="bg-video">
+            <video class="bg-video__content" autoplay muted loop>
+                <source src="v5.mp4"/>
+            </video>
+            <div class="bg-video-overlay"></div>
+        </div>
+        <div class="simulation-content">
+            <div class="simulation-back-btn" onclick="goBackSimulation()">← 돌아가기</div>
+            <div class="simulation-text"> 재난문자 애니메이션 삽입 예정입니다... </div>
+            <div class="simulation-text">매년 <span class="highlight">약 2억 명</span>이 홍수 위험에 노출됩니다.</div>
+            <div class="simulation-text">기후난민의 <span class="highlight">80%</span>는 물 문제로 발생합니다.</div>
+            <div class="simulation-text">해수면은 매년 평균 <span class="highlight">3.4mm</span>씩 상승 중입니다.</div>
+            <div class="simulation-text">도시 인프라의 붕괴는 대피를 어렵게 만듭니다.</div>
+            <div class="simulation-text red">당신은 지금, 그 한가운데에 있습니다.</div>
+            <div class="scroll-guide">
+                아래로 스크롤하여 내용을 확인하세요
+                <span class="scroll-arrow">↓</span>
+            </div>
+            <button class="action-btn" onclick="showPage('sufferingPage')">다음 단계로</button>
+        </div>
+    </section>
+
+    <section class="simulation-section typhoon" id="simulationTyphoon" style="background: linear-gradient(#111, #222);">
+        <div class="simulation-back-btn" onclick="goBackSimulation()">← 돌아가기</div>
+        <div class="simulation-text"> 재난문자 애니메이션 삽입 예정2 </div>
+        <div class="simulation-text"> 인터랙션 너무 재미없어서 작년에 햇던 방식으로 cables.gl 쓰거나 쓰리디 인터랙션 넣을 것 같아요 </div>
+        <div class="simulation-text">초강력 태풍의 비율은 최근 <span class="highlight">30년간 2배</span> 증가했습니다.</div>
+        <div class="simulation-text">피해자의 <span class="highlight">70%</span>는 해안 저소득층입니다.</div>
+        <div class="simulation-text">기후 재난은 평등하지 않습니다.</div>
+        <div class="simulation-text red">정책은 그들을 보호하지 못합니다.</div>
+        <button class="action-btn" onclick="showPage('sufferingPage')">다음 단계로</button>
+    </section>
+
+    <section class="simulation-section earthquake" id="simulationEarthquake">
+        <video class="simulation-bg-video" src="earthquake.mp4" autoplay muted loop></video>
+        <div class="simulation-back-btn" onclick="goBackSimulation()">← 돌아가기</div>
+        <div class="simulation-text""> 재난문자 애니메이션 삽입 예정3 </div>
+        <div class="simulation-text"> 여기도 인터랙션 수정 많이많이... </div>
+        <div class="simulation-text">지반 침하와 기후로 <span class="highlight">인프라가 약해지고</span> 있습니다.</div>
+        <div class="simulation-text">도시가 흔들리고, <span class="highlight">집이 무너지고</span> 있습니다.</div>
+        <div class="simulation-text">돌아갈 집이 없는 사람들은 <span class="highlight">기후난민</span>이 됩니다.</div>
+        <div class="simulation-text red">다음은 당신일 수 있습니다.</div>
+       
+    </section>
+
+    
+
+
+
+    <script>
+        // 시뮬레이션 페이지 전환 및 효과 (스크롤로 한 문장씩 보이게)
+        function startSimulation(type) {
+            document.querySelectorAll('.simulation-section').forEach(s => s.classList.remove('active'));
+            var firstSection = document.querySelector('.first-section');
+            if(firstSection) firstSection.style.display = 'none';
+            let target = null;
+            if(type === 'flood') target = document.getElementById('simulationFlood');
+            else if(type === 'typhoon') target = document.getElementById('simulationTyphoon');
+            else if(type === 'earthquake') target = document.getElementById('simulationEarthquake');
+            if(target) {
+                target.classList.add('active');
+                window.scrollTo(0, 0);
+                setTimeout(() => {
+                    handleSimulationScroll(target);
+                }, 100);
+            }
+            window.addEventListener('scroll', simulationScrollHandler);
+        }
+        function goBackSimulation() {
+            document.querySelectorAll('.simulation-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('simulationIntro').classList.add('active');
+            var firstSection = document.querySelector('.first-section');
+            if(firstSection) firstSection.style.display = '';
+            window.removeEventListener('scroll', simulationScrollHandler);
+        }
+        function handleSimulationScroll(section) {
+            const blocks = section.querySelectorAll('.simulation-text');
+            blocks.forEach(el => el.classList.remove('active', 'collapse'));
+            let found = false;
+            blocks.forEach((el, i) => {
+                const rect = el.getBoundingClientRect();
+                if(!found && rect.top < window.innerHeight/2 && rect.bottom > window.innerHeight/2) {
+                    el.classList.add('active');
+                    // 태풍: 텍스트 날아감(visible 애니메이션)
+                    if(section.classList.contains('typhoon')) {
+                        el.classList.add('visible');
+                    }
+                    // 지진: 마지막 문장 붕괴 효과
+                    if(section.classList.contains('earthquake') && el.classList.contains('red')) {
+                        el.classList.add('collapse');
+                        // 글자 분해
+                        if(!el.dataset.split) {
+                            const text = el.textContent;
+                            el.innerHTML = '';
+                            [...text].forEach((char, idx) => {
+                                const span = document.createElement('span');
+                                span.className = 'char';
+                                span.style.setProperty('--char-index', idx);
+                                span.textContent = char;
+                                el.appendChild(span);
+                            });
+                            el.dataset.split = '1';
+                        }
+                    }
+                    found = true;
+                } else {
+                    el.classList.remove('visible');
+                }
+            });
+        }
+        function simulationScrollHandler() {
+            const activeSection = document.querySelector('.simulation-section.active');
+            if(activeSection) handleSimulationScroll(activeSection);
+        }
+        // 페이지 로드시 intro만 보이게
+        window.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.simulation-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('simulationIntro').classList.add('active');
+            var firstSection = document.querySelector('.first-section');
+            if(firstSection) firstSection.style.display = '';
+
+            // Intersection Observer로 비디오가 보일 때만 재생
+            const video = document.querySelector('.bg-video__content');
+            if (video) {
+                const observer = new window.IntersectionObserver(
+                    (entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                video.play().catch(()=>{});
+                            } else {
+                                video.pause();
+                            }
+                        });
+                    },
+                    { threshold: 0.3 }
+                );
+                observer.observe(video);
+            }
+        });
+
+        function showPage(pageId) {
+            // 모든 page-section 숨기기
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+            // 모든 시뮬레이션 섹션도 숨기기
+            document.querySelectorAll('.simulation-section').forEach(s => s.classList.remove('active'));
+            // 해당 섹션만 보이기
+            const target = document.getElementById(pageId);
+            if(target) {
+                target.classList.add('active');
+                window.scrollTo(0, 0);
+            }
+        }
+    </script>
+</html>
